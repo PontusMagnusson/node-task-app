@@ -83,7 +83,7 @@ app.post('/tasks', (req, res) => {
 
     try {
         task.save()
-        res.send(task)
+        res.status(201).send(task)
     } catch (error) {
         res.status(400).send(error)
     }
