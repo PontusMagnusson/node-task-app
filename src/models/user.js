@@ -53,6 +53,17 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
+// Sanitize profile
+userSchema.methods.toJSON = function () {
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.password
+    delete userObject.tokens
+    
+    return userObject
+}
+
 // Generate JWT and save it to the user
 userSchema.methods.generateAuthToken = async function () {
     const user = this
