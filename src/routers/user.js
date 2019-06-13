@@ -1,4 +1,5 @@
 const express = require('express')
+const multer = require('multer')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
 
@@ -14,6 +15,25 @@ router.post('/users', async (req, res) => {
     } catch(error) {
         res.status(400).send(error)
     }
+})
+
+// Configure file uploads
+const upload = multer({
+    dest: 'avatars',
+    limits: {
+        fileSize: 1 * 1024 * 1024 // 1MB size limit
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Image must be of type .jpg, .jpeg, .png and be below 1MB in size.'))
+        }
+
+        cb(undefined, true)
+    }
+})
+
+router.post('/users/me/avatar', upload.single('avatar'), (req, res) => {
+    res.send()
 })
 
 router.post('/users/login', async (req, res) => {
