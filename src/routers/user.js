@@ -17,27 +17,6 @@ router.post('/users', async (req, res) => {
     }
 })
 
-// Configure file uploads
-const upload = multer({
-    dest: 'avatars',
-    limits: {
-        fileSize: 1 * 1024 * 1024 // 1MB size limit
-    },
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(new Error('Image must be of type .jpg, .jpeg, .png and be below 1MB in size.'))
-        }
-
-        cb(undefined, true)
-    }
-})
-
-router.post('/users/me/avatar', upload.single('avatar'), (req, res) => {
-    res.send()
-}, (error, req, res, next) => {
-    res.status(400).send({error: error.message })
-})
-
 router.post('/users/login', async (req, res) => {
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
@@ -108,6 +87,38 @@ router.delete('/users/me', auth, async (req, res) => {
     } catch (error) {
         res.status(500).send()
     } 
+})
+
+// Configure file uploads
+const upload = multer({
+    limits: {
+        fileSize: 1 * 1024 * 1024 // 1MB size limit
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Image must be of type .jpg, .jpeg, .png and be below 1MB in size.'))
+        }
+
+        cb(undefined, true)
+    }
+})
+
+// Upload avatar
+router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    req.user.avatar = req.file.buffer
+    await req.user.save()
+    
+    res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message })
+})
+
+// Delete avatar
+router.delete('/users/me/avatar', auth, async (req, res) => {
+    req.user.avatar = undefined
+    await req.user.save()
+
+    res.send()
 })
 
 module.exports = router
